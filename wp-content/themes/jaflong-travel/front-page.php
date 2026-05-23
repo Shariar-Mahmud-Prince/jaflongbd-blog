@@ -92,8 +92,8 @@ $hero_bg = get_theme_mod( 'jaflong_travel_hero_bg', 'https://images.unsplash.com
 
             if ( $dest_query->have_posts() ) :
                 while ( $dest_query->have_posts() ) : $dest_query->the_post(); 
-                    $categories = get_the_category();
-                    $category_name = ! empty( $categories ) ? $categories[0]->name : __( 'Popular', 'jaflong-travel' );
+                    $post_tags = get_the_tags();
+                    $first_tag = ! empty( $post_tags ) ? '#' . $post_tags[0]->name : '#দর্শনীয়স্থান';
                     ?>
                     <article class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 card-hover-effect flex flex-col justify-between">
                         <div class="relative h-48 bg-slate-100">
@@ -102,7 +102,7 @@ $hero_bg = get_theme_mod( 'jaflong_travel_hero_bg', 'https://images.unsplash.com
                             <?php else : ?>
                                 <img src="https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=600&q=80" alt="Destination" class="w-full h-full object-cover">
                             <?php endif; ?>
-                            <span class="absolute top-3 right-3 bg-teal-100 text-teal-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase"><?php echo esc_html( $category_name ); ?></span>
+                            <span class="absolute top-3 right-3 bg-teal-100 text-teal-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase"><?php echo esc_html( $first_tag ); ?></span>
                         </div>
                         <div class="p-5">
                             <h4 class="font-extrabold text-slate-900 text-base hover:text-emerald-700 transition mb-2">
