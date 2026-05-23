@@ -47,10 +47,17 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
 
         <!-- Desktop Navigation Links (Responsive display) -->
         <nav class="hidden lg:flex items-center gap-4 text-sm font-semibold">
-            <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="py-2 px-3 text-emerald-100 hover:text-white hover:bg-emerald-900/40 rounded-lg transition">হোম</a>
-            <a href="<?php echo esc_url( home_url( '/blogs/' ) ); ?>" class="py-2 px-3 text-emerald-100 hover:text-white hover:bg-emerald-900/40 rounded-lg transition">ভ্রমণ ব্লগ ও খবর</a>
-            <a href="<?php echo esc_url( home_url( '/airport-route/' ) ); ?>" class="py-2 px-3 text-emerald-100 hover:text-white hover:bg-emerald-900/40 rounded-lg transition">এয়ারপোর্ট রুট</a>
-            <a href="<?php echo esc_url( home_url( '/travel-calculator/' ) ); ?>" class="py-2 px-3 text-emerald-100 hover:text-white hover:bg-emerald-900/40 rounded-lg transition">খরচ ক্যালকুলেটর</a>
+            <?php
+            wp_nav_menu( array(
+                'theme_location'       => 'menu-1',
+                'container'            => false,
+                'items_wrap'           => '%3$s',
+                'fallback_cb'          => false,
+                'depth'                => 1,
+                'walker'               => new Jaflong_Travel_Header_Menu_Walker(),
+                'jaflong_menu_context' => 'desktop',
+            ) );
+            ?>
             <a href="https://wa.me/<?php echo esc_attr( $whatsapp_num ); ?>?text=হ্যালো!%20আমি%20সিলেট%20এবং%20জাফলং%20ভ্রমণের%20জন্য%20বুকিং%20করতে%20চাই।" target="_blank" class="py-2.5 px-4 bg-emerald-700 hover:bg-emerald-600 rounded-xl text-white font-extrabold transition flex items-center justify-center gap-1.5 shadow-sm transform hover:-translate-y-0.5">
                 <i class="fa-brands fa-whatsapp text-base text-emerald-300"></i> সরাসরি হোয়াটসঅ্যাপ বুকিং
             </a>
@@ -58,10 +65,17 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
 
         <!-- Mobile Navigation Menu Container (Fully styled and hidden by default) -->
         <nav id="mobile-nav-panel" class="hidden absolute top-full left-0 right-0 bg-emerald-950/98 backdrop-blur-md p-6 border-t border-emerald-900 shadow-2xl flex flex-col gap-3 text-sm font-bold lg:hidden rounded-b-2xl z-40 animate-fade-in mx-4 mt-2">
-            <a href="<?php echo esc_url( home_url( '/' ) ); ?>" onclick="toggleMobileNavigationMenu()" class="py-3 px-4 text-emerald-100 hover:text-white hover:bg-emerald-900/50 rounded-xl transition">হোম</a>
-            <a href="<?php echo esc_url( home_url( '/blogs/' ) ); ?>" onclick="toggleMobileNavigationMenu()" class="py-3 px-4 text-emerald-100 hover:text-white hover:bg-emerald-900/50 rounded-xl transition">ভ্রমণ ব্লগ ও খবর</a>
-            <a href="<?php echo esc_url( home_url( '/airport-route/' ) ); ?>" onclick="toggleMobileNavigationMenu()" class="py-3 px-4 text-emerald-100 hover:text-white hover:bg-emerald-900/50 rounded-xl transition">এয়ারপোর্ট রুট</a>
-            <a href="<?php echo esc_url( home_url( '/travel-calculator/' ) ); ?>" onclick="toggleMobileNavigationMenu()" class="py-3 px-4 text-emerald-100 hover:text-white hover:bg-emerald-900/50 rounded-xl transition">খরচ ক্যালকুলেটর</a>
+            <?php
+            wp_nav_menu( array(
+                'theme_location'       => 'menu-1',
+                'container'            => false,
+                'items_wrap'           => '%3$s',
+                'fallback_cb'          => false,
+                'depth'                => 1,
+                'walker'               => new Jaflong_Travel_Header_Menu_Walker(),
+                'jaflong_menu_context' => 'mobile',
+            ) );
+            ?>
             <hr class="border-emerald-900 my-1">
             <a href="https://wa.me/<?php echo esc_attr( $whatsapp_num ); ?>?text=হ্যালো!%20আমি%20সিলেট%20এবং%20জাফলং%20ভ্রমণের%20জন্য%20বুকিং%20করতে%20চাই।" target="_blank" class="py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white font-black text-center transition flex items-center justify-center gap-2 shadow-md">
                 <i class="fa-brands fa-whatsapp text-lg"></i> সরাসরি হোয়াটসঅ্যাপ বুকিং

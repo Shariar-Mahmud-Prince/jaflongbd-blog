@@ -38,6 +38,56 @@ function jaflong_travel_setup() {
 add_action( 'after_setup_theme', 'jaflong_travel_setup' );
 
 /**
+ * Add Tailwind classes to primary menu links in the header.
+ */
+function jaflong_travel_primary_menu_link_attributes( $atts, $item, $args ) {
+    if ( empty( $args->theme_location ) || 'menu-1' !== $args->theme_location ) {
+        return $atts;
+    }
+
+    $context = ! empty( $args->jaflong_menu_context ) ? $args->jaflong_menu_context : 'desktop';
+
+    if ( 'mobile' === $context ) {
+        $atts['class']   = trim( ( $atts['class'] ?? '' ) . ' py-3 px-4 text-emerald-100 hover:text-white hover:bg-emerald-900/50 rounded-xl transition' );
+        $atts['onclick'] = 'toggleMobileNavigationMenu()';
+    } else {
+        $atts['class'] = trim( ( $atts['class'] ?? '' ) . ' py-2 px-3 text-emerald-100 hover:text-white hover:bg-emerald-900/40 rounded-lg transition' );
+    }
+
+    return $atts;
+}
+add_filter( 'nav_menu_link_attributes', 'jaflong_travel_primary_menu_link_attributes', 10, 3 );
+
+/**
+ * Output primary header menu items as direct anchor tags.
+ */
+class Jaflong_Travel_Header_Menu_Walker extends Walker_Nav_Menu {
+    public function start_el( &$output, $item, $depth = 0, $args = null, $id = 0 ) {
+        $atts           = array();
+        $atts['href']   = ! empty( $item->url ) ? $item->url : '';
+        $atts['target'] = ! empty( $item->target ) ? $item->target : '';
+        $atts['rel']    = ! empty( $item->xfn ) ? $item->xfn : '';
+
+        $atts = apply_filters( 'nav_menu_link_attributes', $atts, $item, $args, $depth );
+
+        $attributes = '';
+        foreach ( $atts as $attr => $value ) {
+            if ( '' !== $value && false !== $value ) {
+                $value       = 'href' === $attr ? esc_url( $value ) : esc_attr( $value );
+                $attributes .= ' ' . $attr . '="' . $value . '"';
+            }
+        }
+
+        $title = apply_filters( 'the_title', $item->title, $item->ID );
+        $title = apply_filters( 'nav_menu_item_title', $title, $item, $args, $depth );
+
+        $output .= '<a' . $attributes . '>' . esc_html( $title ) . '</a>';
+    }
+
+    public function end_el( &$output, $item, $depth = 0, $args = null ) {}
+}
+
+/**
  * Register Customize settings for Logo, Whatsapp, and Hero Background
  */
 function jaflong_travel_customize_register( $wp_customize ) {
