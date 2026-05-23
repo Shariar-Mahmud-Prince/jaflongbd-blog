@@ -70,7 +70,7 @@ $hero_bg = get_theme_mod( 'jaflong_travel_hero_bg', 'https://images.unsplash.com
         </div>
     </div>
 
-    <!-- POPULAR DESTINATIONS SECTION (100% Dynamic - Category: popular-destinations) -->
+    <!-- POPULAR DESTINATIONS SECTION (100% Dynamic - Category: popular) -->
     <section id="popular-destinations" class="container-custom py-16 md:py-24">
         <!-- Headline matching image_23cf86.png styling exactly -->
         <div class="text-center mb-12">
@@ -85,19 +85,15 @@ $hero_bg = get_theme_mod( 'jaflong_travel_hero_bg', 'https://images.unsplash.com
         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <?php
             $dest_query = new WP_Query( array(
-                'category_name'  => 'popular-destinations',
-                'posts_per_page' => 4,
+                'category_name'  => 'popular',
+                'posts_per_page' => 8,
                 'post_status'    => 'publish',
             ) );
 
             if ( $dest_query->have_posts() ) :
                 while ( $dest_query->have_posts() ) : $dest_query->the_post(); 
-                    // Dynamic query to extract the absolute first tag from current post
-                    $post_tags = get_the_tags();
-                    $dynamic_tag = '#দর্শনীয়স্থান'; // default fallback
-                    if ( $post_tags ) {
-                        $dynamic_tag = '#' . esc_html( $post_tags[0]->name );
-                    }
+                    $categories = get_the_category();
+                    $category_name = ! empty( $categories ) ? $categories[0]->name : __( 'Popular', 'jaflong-travel' );
                     ?>
                     <article class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 card-hover-effect flex flex-col justify-between">
                         <div class="relative h-48 bg-slate-100">
@@ -106,8 +102,7 @@ $hero_bg = get_theme_mod( 'jaflong_travel_hero_bg', 'https://images.unsplash.com
                             <?php else : ?>
                                 <img src="https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=600&q=80" alt="Destination" class="w-full h-full object-cover">
                             <?php endif; ?>
-                            <!-- Dynamic Tag injection instead of Featured hardcode -->
-                            <span class="absolute top-3 right-3 bg-teal-100 text-teal-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase"><?php echo esc_html( $dynamic_tag ); ?></span>
+                            <span class="absolute top-3 right-3 bg-teal-100 text-teal-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase"><?php echo esc_html( $category_name ); ?></span>
                         </div>
                         <div class="p-5">
                             <h4 class="font-extrabold text-slate-900 text-base hover:text-emerald-700 transition mb-2">
@@ -119,49 +114,8 @@ $hero_bg = get_theme_mod( 'jaflong_travel_hero_bg', 'https://images.unsplash.com
                 <?php endwhile;
                 wp_reset_postdata();
             else : ?>
-                <!-- Pre-populated placeholders falling back cleanly on zero post state -->
-                <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 card-hover-effect flex flex-col justify-between">
-                    <div class="relative h-48 bg-slate-100">
-                        <img src="https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=600&q=80" alt="Jaflong" class="w-full h-full object-cover">
-                        <span class="absolute top-3 right-3 bg-teal-100 text-teal-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">#নদী_ও_পাথর</span>
-                    </div>
-                    <div class="p-5">
-                        <h4 class="font-extrabold text-slate-900 text-base">জাফলং জিরো পয়েন্ট</h4>
-                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">খাসিয়া পাহাড়ের পাদদেশে পিয়াইন নদীর স্বচ্ছ পানি আর পাথরের অপরূপ খেলা।</p>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 card-hover-effect flex flex-col justify-between">
-                    <div class="relative h-48 bg-slate-100">
-                        <img src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=600&q=80" alt="Ratargul" class="w-full h-full object-cover">
-                        <span class="absolute top-3 right-3 bg-green-100 text-green-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">#সোয়াম্প_ফরেস্ট</span>
-                    </div>
-                    <div class="p-5">
-                        <h4 class="font-extrabold text-slate-900 text-base">রাতারগুল বন</h4>
-                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">বাংলার একমাত্র মিঠাপানির জলাবন, যেখানে নৌকায় চড়ে রোমাঞ্চকর অভিজ্ঞতা মেলে।</p>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 card-hover-effect flex flex-col justify-between">
-                    <div class="relative h-48 bg-slate-100">
-                        <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80" alt="Bisanakandi" class="w-full h-full object-cover">
-                        <span class="absolute top-3 right-3 bg-blue-100 text-blue-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">#ঝর্ণা_ও_পাহাড়</span>
-                    </div>
-                    <div class="p-5">
-                        <h4 class="font-extrabold text-slate-900 text-base">বিছনাকান্দি</h4>
-                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">পাহাড়ের কোল ঘেঁষে বয়ে চলা ঠাণ্ডা পানির স্রোত এবং পাথর ছিটানো নদীপথ।</p>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 card-hover-effect flex flex-col justify-between">
-                    <div class="relative h-48 bg-slate-100">
-                        <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80" alt="Sreemangal" class="w-full h-full object-cover">
-                        <span class="absolute top-3 right-3 bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">#চা_বাগান</span>
-                    </div>
-                    <div class="p-5">
-                        <h4 class="font-extrabold text-slate-900 text-base">শ্রীমঙ্গল</h4>
-                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">দেশের চায়ের রাজধানী, যেদিকে চোখ যায় শুধু সবুজ আর সবুজের সমারোহ।</p>
-                    </div>
+                <div class="col-span-full text-center py-12 bg-white rounded-2xl border border-slate-100">
+                    <p class="text-xs text-slate-500"><?php esc_html_e( 'Popular ক্যাটাগরিতে কোনো পোস্ট পাওয়া যায়নি।', 'jaflong-travel' ); ?></p>
                 </div>
             <?php endif; ?>
         </div>

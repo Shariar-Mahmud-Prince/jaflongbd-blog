@@ -37,10 +37,10 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
             <!-- Filter Tabs to quickly jump/filter archives -->
             <div class="flex flex-wrap gap-2">
                 <button onclick="changeCategoryFilter('all', this)" class="blog-filter-btn px-5 py-3 rounded-xl text-xs font-bold transition-all bg-emerald-600 text-white shadow-sm">All Articles</button>
-                <button onclick="changeCategoryFilter('popular-destinations', this)" class="blog-filter-btn px-5 py-3 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 hover:bg-slate-100 border border-slate-200">Popular Destinations</button>
-                <button onclick="changeCategoryFilter('travel-guides', this)" class="blog-filter-btn px-5 py-3 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 hover:bg-slate-100 border border-slate-200">Travel Guides</button>
-                <button onclick="changeCategoryFilter('live-news', this)" class="blog-filter-btn px-5 py-3 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 hover:bg-slate-100 border border-slate-200">Live News</button>
-                <button onclick="changeCategoryFilter('travel-tips', this)" class="blog-filter-btn px-5 py-3 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 hover:bg-slate-100 border border-slate-200">Travel Tips</button>
+                <button onclick="changeCategoryFilter('popular', this)" class="blog-filter-btn px-5 py-3 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 hover:bg-slate-100 border border-slate-200">Popular Destinations</button>
+                <button onclick="changeCategoryFilter('guide', this)" class="blog-filter-btn px-5 py-3 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 hover:bg-slate-100 border border-slate-200">Travel Guides</button>
+                <button onclick="changeCategoryFilter('news', this)" class="blog-filter-btn px-5 py-3 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 hover:bg-slate-100 border border-slate-200">Live News</button>
+                <button onclick="changeCategoryFilter('tips', this)" class="blog-filter-btn px-5 py-3 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 hover:bg-slate-100 border border-slate-200">Travel Tips</button>
             </div>
             
             <!-- Modern Search Box matching your high fidelity layouts -->
