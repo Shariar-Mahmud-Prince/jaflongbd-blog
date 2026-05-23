@@ -88,6 +88,155 @@ class Jaflong_Travel_Header_Menu_Walker extends Walker_Nav_Menu {
 }
 
 /**
+ * Enable a multi-image gallery picker for blog posts.
+ */
+function jaflong_travel_add_post_gallery_meta_box() {
+    add_meta_box(
+        'jaflong_travel_post_gallery',
+        esc_html__( 'Post Gallery Images', 'jaflong-travel' ),
+        'jaflong_travel_post_gallery_meta_box_callback',
+        'post',
+        'normal',
+        'default'
+    );
+}
+add_action( 'add_meta_boxes', 'jaflong_travel_add_post_gallery_meta_box' );
+
+function jaflong_travel_post_gallery_meta_box_callback( $post ) {
+    wp_nonce_field( 'jaflong_travel_save_post_gallery', 'jaflong_travel_post_gallery_nonce' );
+
+    $gallery_ids = get_post_meta( $post->ID, '_jaflong_travel_gallery_ids', true );
+    $gallery_ids = is_array( $gallery_ids ) ? $gallery_ids : array_filter( array_map( 'absint', explode( ',', (string) $gallery_ids ) ) );
+    ?>
+    <div id="jaflong-travel-gallery-metabox">
+        <input type="hidden" id="jaflong-travel-gallery-ids" name="jaflong_travel_gallery_ids" value="<?php echo esc_attr( implode( ',', $gallery_ids ) ); ?>">
+        <div id="jaflong-travel-gallery-preview" style="display:flex;flex-wrap:wrap;gap:10px;margin:12px 0;">
+            <?php foreach ( $gallery_ids as $attachment_id ) : ?>
+                <?php $thumb_url = wp_get_attachment_image_url( $attachment_id, 'thumbnail' ); ?>
+                <?php if ( $thumb_url ) : ?>
+                    <img src="<?php echo esc_url( $thumb_url ); ?>" alt="" style="width:80px;height:80px;object-fit:cover;border:1px solid #dcdcde;border-radius:6px;">
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+        <p>
+            <button type="button" class="button button-primary" id="jaflong-travel-gallery-select"><?php esc_html_e( 'Add / Edit Gallery', 'jaflong-travel' ); ?></button>
+            <button type="button" class="button" id="jaflong-travel-gallery-clear"><?php esc_html_e( 'Clear Gallery', 'jaflong-travel' ); ?></button>
+        </p>
+        <p class="description"><?php esc_html_e( 'Select multiple images from the media library for this blog post gallery.', 'jaflong-travel' ); ?></p>
+    </div>
+
+    <script>
+        jQuery(function($) {
+            let galleryFrame;
+            const idsInput = $('#jaflong-travel-gallery-ids');
+            const preview = $('#jaflong-travel-gallery-preview');
+
+            function renderPreview(attachments) {
+                preview.empty();
+                attachments.each(function(attachment) {
+                    const image = attachment.attributes.sizes && attachment.attributes.sizes.thumbnail
+                        ? attachment.attributes.sizes.thumbnail.url
+                        : attachment.attributes.url;
+
+                    preview.append(
+                        $('<img>', {
+                            src: image,
+                            alt: ''
+                        }).css({
+                            width: '80px',
+                            height: '80px',
+                            objectFit: 'cover',
+                            border: '1px solid #dcdcde',
+                            borderRadius: '6px'
+                        })
+                    );
+                });
+            }
+
+            $('#jaflong-travel-gallery-select').on('click', function(e) {
+                e.preventDefault();
+
+                galleryFrame = wp.media({
+                    title: '<?php echo esc_js( __( 'Select Gallery Images', 'jaflong-travel' ) ); ?>',
+                    button: {
+                        text: '<?php echo esc_js( __( 'Use These Images', 'jaflong-travel' ) ); ?>'
+                    },
+                    multiple: true,
+                    library: {
+                        type: 'image'
+                    }
+                });
+
+                galleryFrame.on('open', function() {
+                    const selection = galleryFrame.state().get('selection');
+                    const selectedIds = idsInput.val() ? idsInput.val().split(',') : [];
+
+                    selectedIds.forEach(function(id) {
+                        const attachment = wp.media.attachment(id);
+                        attachment.fetch();
+                        selection.add(attachment ? [attachment] : []);
+                    });
+                });
+
+                galleryFrame.on('select', function() {
+                    const selection = galleryFrame.state().get('selection');
+                    const ids = [];
+
+                    selection.each(function(attachment) {
+                        ids.push(attachment.id);
+                    });
+
+                    idsInput.val(ids.join(','));
+                    renderPreview(selection);
+                });
+
+                galleryFrame.open();
+            });
+
+            $('#jaflong-travel-gallery-clear').on('click', function(e) {
+                e.preventDefault();
+                idsInput.val('');
+                preview.empty();
+            });
+        });
+    </script>
+    <?php
+}
+
+function jaflong_travel_enqueue_post_gallery_admin_assets( $hook ) {
+    if ( 'post.php' !== $hook && 'post-new.php' !== $hook ) {
+        return;
+    }
+
+    wp_enqueue_media();
+}
+add_action( 'admin_enqueue_scripts', 'jaflong_travel_enqueue_post_gallery_admin_assets' );
+
+function jaflong_travel_save_post_gallery_meta( $post_id ) {
+    if ( ! isset( $_POST['jaflong_travel_post_gallery_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['jaflong_travel_post_gallery_nonce'] ) ), 'jaflong_travel_save_post_gallery' ) ) {
+        return;
+    }
+
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+        return;
+    }
+
+    if ( ! current_user_can( 'edit_post', $post_id ) ) {
+        return;
+    }
+
+    $gallery_ids = isset( $_POST['jaflong_travel_gallery_ids'] ) ? sanitize_text_field( wp_unslash( $_POST['jaflong_travel_gallery_ids'] ) ) : '';
+    $gallery_ids = array_filter( array_map( 'absint', explode( ',', $gallery_ids ) ) );
+
+    if ( ! empty( $gallery_ids ) ) {
+        update_post_meta( $post_id, '_jaflong_travel_gallery_ids', implode( ',', $gallery_ids ) );
+    } else {
+        delete_post_meta( $post_id, '_jaflong_travel_gallery_ids' );
+    }
+}
+add_action( 'save_post_post', 'jaflong_travel_save_post_gallery_meta' );
+
+/**
  * Register Customize settings for Logo, Whatsapp, and Hero Background
  */
 function jaflong_travel_customize_register( $wp_customize ) {
