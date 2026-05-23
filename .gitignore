@@ -1,0 +1,16 @@
+*
+
+!.gitignore
+!README.md
+!.github/
+!.github/**
+!wp-content/
+!wp-content/themes/
+!wp-content/themes/jaflong-travel/
+!wp-content/themes/jaflong-travel/**
+
+wp-content/themes/jaflong-travel/node_modules/
+wp-content/themes/jaflong-travel/vendor/
+wp-content/themes/jaflong-travel/.env
+wp-content/themes/jaflong-travel/.DS_Store
+wp-content/themes/jaflong-travel/Thumbs.db
