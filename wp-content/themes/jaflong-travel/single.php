@@ -76,7 +76,95 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
 
             </div>
         </article>
+
+        <?php
+        $blog_gallery_query = new WP_Query( array(
+            'post_type'           => 'post',
+            'posts_per_page'      => -1,
+            'post_status'         => 'publish',
+            'ignore_sticky_posts' => true,
+        ) );
+        ?>
+
+        <?php if ( $blog_gallery_query->have_posts() ) : ?>
+            <section class="mt-12 md:mt-16">
+                <div class="flex items-end justify-between gap-4 mb-6">
+                    <div>
+                        <span class="text-emerald-700 font-extrabold text-xs uppercase tracking-widest">ব্লগ গ্যালারি</span>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">আরও ভ্রমণ ব্লগ</h2>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="slideBlogGallery(-1)" class="w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 transition" aria-label="<?php esc_attr_e( 'Previous posts', 'jaflong-travel' ); ?>">
+                            <i class="fa-solid fa-arrow-left text-xs"></i>
+                        </button>
+                        <button type="button" onclick="slideBlogGallery(1)" class="w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 transition" aria-label="<?php esc_attr_e( 'Next posts', 'jaflong-travel' ); ?>">
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="single-blog-gallery-slider" class="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4">
+                    <?php
+                    while ( $blog_gallery_query->have_posts() ) :
+                        $blog_gallery_query->the_post();
+                        $categories = get_the_category();
+                        $category_name = ! empty( $categories ) ? $categories[0]->name : __( 'Blog', 'jaflong-travel' );
+                        ?>
+                        <article class="snap-start shrink-0 w-[280px] sm:w-[320px] bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 flex flex-col justify-between card-hover-effect">
+                            <div>
+                                <a href="<?php the_permalink(); ?>" class="block relative h-48 bg-slate-100 overflow-hidden">
+                                    <?php if ( has_post_thumbnail() ) : ?>
+                                        <?php the_post_thumbnail( 'medium_large', array(
+                                            'class'    => 'w-full h-full object-cover',
+                                            'loading'  => 'lazy',
+                                            'decoding' => 'async',
+                                        ) ); ?>
+                                    <?php else : ?>
+                                        <img src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=600&q=80" alt="<?php the_title_attribute(); ?>" loading="lazy" decoding="async" class="w-full h-full object-cover">
+                                    <?php endif; ?>
+                                    <span class="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                                        <?php echo esc_html( $category_name ); ?>
+                                    </span>
+                                </a>
+                                <div class="p-5">
+                                    <div class="text-[10px] text-slate-400 font-semibold mb-2 flex justify-between items-center gap-3">
+                                        <span><?php echo esc_html( get_the_date() ); ?></span>
+                                        <span class="truncate">লেখক: <?php the_author(); ?></span>
+                                    </div>
+                                    <h3 class="font-extrabold text-slate-900 text-base leading-snug hover:text-emerald-700 transition">
+                                        <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+                                    </h3>
+                                    <p class="text-xs text-slate-500 mt-2.5 line-clamp-3 leading-relaxed"><?php echo esc_html( wp_strip_all_tags( get_the_excerpt() ) ); ?></p>
+                                </div>
+                            </div>
+                            <div class="p-5 pt-0 text-right">
+                                <a href="<?php the_permalink(); ?>" class="text-xs text-emerald-600 font-extrabold hover:underline inline-flex items-center gap-1">
+                                    বিস্তারিত পড়ুন <i class="fa-solid fa-chevron-right text-[9px]"></i>
+                                </a>
+                            </div>
+                        </article>
+                    <?php endwhile; ?>
+                </div>
+            </section>
+            <?php wp_reset_postdata(); ?>
+        <?php endif; ?>
     </div>
 </main>
+
+<script>
+    function slideBlogGallery(direction) {
+        const slider = document.getElementById('single-blog-gallery-slider');
+        if (!slider) {
+            return;
+        }
+
+        const card = slider.querySelector('article');
+        const cardWidth = card ? card.offsetWidth + 24 : 344;
+        slider.scrollBy({
+            left: direction * cardWidth,
+            behavior: 'smooth'
+        });
+    }
+</script>
 
 <?php get_footer(); ?>
