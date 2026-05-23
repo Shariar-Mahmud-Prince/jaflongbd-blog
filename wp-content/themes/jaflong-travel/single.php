@@ -70,39 +70,61 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
                 <?php
                 $post_gallery_ids = get_post_meta( get_the_ID(), '_jaflong_travel_gallery_ids', true );
                 $post_gallery_ids = array_filter( array_map( 'absint', explode( ',', (string) $post_gallery_ids ) ) );
+                $post_gallery_ids = array_values( array_filter( $post_gallery_ids, 'wp_attachment_is_image' ) );
                 ?>
 
                 <?php if ( ! empty( $post_gallery_ids ) ) : ?>
-                    <section class="mt-12">
-                        <div class="flex items-end justify-between gap-4 mb-5">
+                    <section class="mt-12 relative left-1/2 w-[calc(100vw-2rem)] max-w-[1170px] -translate-x-1/2">
+                        <div class="flex items-end justify-between gap-4 mb-5 px-1">
                             <div>
                                 <span class="text-emerald-700 font-extrabold text-xs uppercase tracking-widest">ছবি গ্যালারি</span>
                                 <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">পোস্টের ছবি</h2>
                             </div>
-                            <div class="flex gap-2">
-                                <button type="button" onclick="slideHorizontalGallery('single-post-image-gallery', -1)" class="w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 transition" aria-label="<?php esc_attr_e( 'Previous gallery images', 'jaflong-travel' ); ?>">
-                                    <i class="fa-solid fa-arrow-left text-xs"></i>
-                                </button>
-                                <button type="button" onclick="slideHorizontalGallery('single-post-image-gallery', 1)" class="w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 transition" aria-label="<?php esc_attr_e( 'Next gallery images', 'jaflong-travel' ); ?>">
-                                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                                </button>
-                            </div>
                         </div>
 
-                        <div id="single-post-image-gallery" class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4">
-                            <?php foreach ( $post_gallery_ids as $attachment_id ) : ?>
-                                <?php if ( wp_get_attachment_image_url( $attachment_id, 'large' ) ) : ?>
-                                    <a href="<?php echo esc_url( wp_get_attachment_image_url( $attachment_id, 'full' ) ); ?>" target="_blank" class="snap-start shrink-0 w-[260px] sm:w-[340px] aspect-[4/3] bg-slate-100 rounded-2xl overflow-hidden border border-slate-100">
-                                        <?php
-                                        echo wp_get_attachment_image( $attachment_id, 'large', false, array(
-                                            'class'    => 'w-full h-full object-cover',
-                                            'loading'  => 'lazy',
-                                            'decoding' => 'async',
-                                        ) );
-                                        ?>
-                                    </a>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
+                        <?php
+                        $first_gallery_id = reset( $post_gallery_ids );
+                        $first_full_url = wp_get_attachment_image_url( $first_gallery_id, 'full' );
+                        ?>
+                        <div class="bg-white border border-slate-100 shadow-sm overflow-hidden">
+                            <a id="post-gallery-main-link" href="<?php echo esc_url( $first_full_url ); ?>" target="_blank" class="block w-full aspect-[16/9] md:aspect-[21/9] bg-slate-100">
+                                <?php
+                                echo wp_get_attachment_image( $first_gallery_id, 'large', false, array(
+                                    'id'       => 'post-gallery-main-image',
+                                    'class'    => 'w-full h-full object-cover',
+                                    'loading'  => 'lazy',
+                                    'decoding' => 'async',
+                                ) );
+                                ?>
+                            </a>
+
+                            <div id="single-post-image-gallery" class="flex gap-0.5 overflow-x-auto scroll-smooth px-0.5 pt-0.5 bg-white">
+                                <?php foreach ( $post_gallery_ids as $index => $attachment_id ) : ?>
+                                    <?php
+                                    $large_url = wp_get_attachment_image_url( $attachment_id, 'large' );
+                                    $full_url = wp_get_attachment_image_url( $attachment_id, 'full' );
+                                    ?>
+                                    <?php if ( $large_url ) : ?>
+                                        <button type="button" onclick="selectPostGalleryImage(<?php echo esc_attr( $index ); ?>)" class="post-gallery-thumb shrink-0 w-24 sm:w-32 md:w-40 h-20 sm:h-24 md:h-28 bg-slate-100 overflow-hidden border-2 <?php echo 0 === $index ? 'border-slate-900' : 'border-transparent'; ?>" data-large="<?php echo esc_url( $large_url ); ?>" data-full="<?php echo esc_url( $full_url ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'View gallery image %d', 'jaflong-travel' ), $index + 1 ) ); ?>">
+                                            <?php
+                                            echo wp_get_attachment_image( $attachment_id, 'thumbnail', false, array(
+                                                'class'    => 'w-full h-full object-cover',
+                                                'loading'  => 'lazy',
+                                                'decoding' => 'async',
+                                            ) );
+                                            ?>
+                                        </button>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+
+                            <div class="flex flex-wrap items-center justify-center gap-2 py-3 bg-white">
+                                <?php foreach ( $post_gallery_ids as $index => $attachment_id ) : ?>
+                                    <?php if ( wp_get_attachment_image_url( $attachment_id, 'large' ) ) : ?>
+                                        <button type="button" onclick="selectPostGalleryImage(<?php echo esc_attr( $index ); ?>)" class="post-gallery-dot w-2.5 h-2.5 rounded-full border-2 border-black <?php echo 0 === $index ? 'bg-black' : 'bg-white'; ?>" aria-label="<?php echo esc_attr( sprintf( __( 'Go to gallery image %d', 'jaflong-travel' ), $index + 1 ) ); ?>"></button>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
                     </section>
                 <?php endif; ?>
@@ -226,6 +248,38 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
 
     function slideBlogGallery(direction) {
         slideHorizontalGallery('single-blog-gallery-slider', direction);
+    }
+
+    function selectPostGalleryImage(index) {
+        const mainImage = document.getElementById('post-gallery-main-image');
+        const mainLink = document.getElementById('post-gallery-main-link');
+        const thumbs = document.querySelectorAll('.post-gallery-thumb');
+        const dots = document.querySelectorAll('.post-gallery-dot');
+        const selectedThumb = thumbs[index];
+
+        if (!mainImage || !mainLink || !selectedThumb) {
+            return;
+        }
+
+        mainImage.src = selectedThumb.dataset.large;
+        mainImage.srcset = '';
+        mainLink.href = selectedThumb.dataset.full || selectedThumb.dataset.large;
+
+        thumbs.forEach((thumb, thumbIndex) => {
+            thumb.classList.toggle('border-slate-900', thumbIndex === index);
+            thumb.classList.toggle('border-transparent', thumbIndex !== index);
+        });
+
+        dots.forEach((dot, dotIndex) => {
+            dot.classList.toggle('bg-black', dotIndex === index);
+            dot.classList.toggle('bg-white', dotIndex !== index);
+        });
+
+        selectedThumb.scrollIntoView({
+            behavior: 'smooth',
+            inline: 'center',
+            block: 'nearest'
+        });
     }
 </script>
 
