@@ -25,8 +25,8 @@ jobs:
           remote-user: ${{ secrets.FTP_USER }} # Your SSH username
           private-ssh-key: ${{ secrets.SSH_KEY }} # The private key used for SSH authentication
           ssh-port: ${{ secrets.FTP_PORT }} # Custom SSH port
-          source-path: ./ # The local directory to upload
-          destination-path: /home/u518328380/domains/jaflongbd.com/public_html/wp-content/themes/jaflong-travel # Remote path on the server
+          source-path: ./wp-content/themes/jaflong-travel/ # The local directory to upload
+          destination-path: /home/${{ secrets.FTP_USER}}/domains/jaflongbd.com/public_html/wp-content/themes/jaflong-travel # Remote path on the server
 
 
       #- name: Deploy Plugins
