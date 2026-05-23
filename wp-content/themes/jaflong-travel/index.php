@@ -23,9 +23,9 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
             <span class="bg-emerald-500/20 text-emerald-300 text-[11px] font-extrabold uppercase px-3.5 py-1.5 rounded-full inline-block shadow-sm mb-4 tracking-wider">
                 <?php esc_html_e( 'Jaflong Travel Blog & Live News', 'jaflong-travel' ); ?>
             </span>
-            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight">Stay Updated with Live Information</h1>
+            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight">যাত্রার আগে প্রয়োজনীয় আপডেট জেনে নিন</h1>
             <p class="text-xs md:text-sm text-emerald-200 mt-3 max-w-2xl mx-auto leading-relaxed">
-                Stay updated on recent weather changes, water levels, local festival announcements and explore the best backpacker guides.
+                আবহাওয়ার সাম্প্রতিক পরিবর্তন, পানির স্তর, স্থানীয় উৎসবের ঘোষণা এবং সেরা ব্যাকপ্যাকার গাইড সম্পর্কে সর্বশেষ তথ্য জানুন।
             </p>
         </div>
     </div>
@@ -61,6 +61,13 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
                 'paged'          => $paged,
                 'post_status'    => 'publish',
             );
+
+            if ( is_category() ) {
+                $args['category_name'] = get_queried_object()->slug;
+            } elseif ( is_tag() ) {
+                $args['tag'] = get_queried_object()->slug;
+            }
+
             $query = new WP_Query( $args );
 
             if ( $query->have_posts() ) :
@@ -74,13 +81,13 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
                     ?>
                     <article class="blog-post-card <?php echo esc_attr( $class_string ); ?> bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 flex flex-col justify-between card-hover-effect">
                         <div>
-                            <div class="relative h-56 bg-slate-100">
+                            <a href="<?php the_permalink(); ?>" class="block relative h-56 bg-slate-100 overflow-hidden">
                                 <?php if ( has_post_thumbnail() ) : ?>
                                     <?php the_post_thumbnail( 'medium_large', array( 'class' => 'w-full h-full object-cover' ) ); ?>
                                 <?php else : ?>
                                     <img src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=600&q=80" alt="Placeholder" class="w-full h-full object-cover">
                                 <?php endif; ?>
-                            </div>
+                            </a>
                             <div class="p-6">
                                 <div class="text-[10px] text-slate-400 font-semibold mb-2 flex justify-between items-center">
                                     <span><?php echo esc_html( get_the_date() ); ?></span>
@@ -123,7 +130,8 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
     let currentPage = 1;
     let isLoading = false;
     let allContentLoaded = false;
-    let currentCategory = 'all';
+    let currentCategory = '<?php echo is_category() ? esc_js( get_queried_object()->slug ) : 'all'; ?>';
+    let currentTag = '<?php echo is_tag() ? esc_js( get_queried_object()->slug ) : ''; ?>';
     let currentSearch = '';
     let debounceTimer;
 
@@ -164,6 +172,7 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
         formData.append('action', 'jaflong_travel_ajax_load_posts');
         formData.append('page', currentPage);
         formData.append('category', currentCategory);
+        formData.append('tag', currentTag);
         formData.append('search', currentSearch);
 
         try {
@@ -203,6 +212,7 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
 
         // Reset variables
         currentCategory = catSlug;
+        currentTag = '';
         currentPage = 1;
         allContentLoaded = false;
         document.getElementById('all-loaded-text').classList.add('hidden');
@@ -215,6 +225,7 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
         formData.append('action', 'jaflong_travel_ajax_load_posts');
         formData.append('page', 1);
         formData.append('category', currentCategory);
+        formData.append('tag', currentTag);
         formData.append('search', currentSearch);
 
         try {
@@ -253,6 +264,7 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
             formData.append('action', 'jaflong_travel_ajax_load_posts');
             formData.append('page', 1);
             formData.append('category', currentCategory);
+            formData.append('tag', currentTag);
             formData.append('search', currentSearch);
 
             try {

@@ -32,9 +32,19 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
                 
                 <!-- Metadata & Breadcrumbs in Bangla -->
                 <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 mb-6">
-                    <span class="bg-emerald-100 text-emerald-800 font-extrabold px-3.5 py-1.5 rounded-full uppercase tracking-wider text-[10px]">
-                        <?php the_category(', '); ?>
-                    </span>
+                    <?php $post_tags = get_the_tags(); ?>
+                    <?php foreach ( get_the_category() as $category ) : ?>
+                        <a href="<?php echo esc_url( get_category_link( $category ) ); ?>" class="bg-emerald-100 text-emerald-800 font-extrabold px-3.5 py-1.5 rounded-full uppercase tracking-wider text-[10px] hover:bg-emerald-200 transition">
+                            <?php echo esc_html( $category->name ); ?>
+                        </a>
+                    <?php endforeach; ?>
+                    <?php if ( $post_tags ) : ?>
+                        <?php foreach ( $post_tags as $tag ) : ?>
+                            <a href="<?php echo esc_url( get_tag_link( $tag ) ); ?>" class="bg-teal-50 text-teal-700 font-extrabold px-3.5 py-1.5 rounded-full uppercase tracking-wider text-[10px] hover:bg-teal-100 transition">
+                                #<?php echo esc_html( $tag->name ); ?>
+                            </a>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                     <span><?php the_date(); ?></span>
                     <span>•</span>
                     <span class="font-bold text-slate-600">লেখক: <?php the_author(); ?></span>
@@ -152,7 +162,8 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
                         ?>
                         <article class="snap-start shrink-0 w-[280px] sm:w-[320px] bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 flex flex-col justify-between card-hover-effect">
                             <div>
-                                <a href="<?php the_permalink(); ?>" class="block relative h-48 bg-slate-100 overflow-hidden">
+                                <div class="relative h-48 bg-slate-100 overflow-hidden">
+                                    <a href="<?php the_permalink(); ?>" class="block h-full">
                                     <?php if ( has_post_thumbnail() ) : ?>
                                         <?php the_post_thumbnail( 'medium_large', array(
                                             'class'    => 'w-full h-full object-cover',
@@ -162,10 +173,17 @@ $whatsapp_num = get_theme_mod( 'jaflong_travel_whatsapp_number', '8801700000000'
                                     <?php else : ?>
                                         <img src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=600&q=80" alt="<?php the_title_attribute(); ?>" loading="lazy" decoding="async" class="w-full h-full object-cover">
                                     <?php endif; ?>
-                                    <span class="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                                        <?php echo esc_html( $category_name ); ?>
-                                    </span>
-                                </a>
+                                    </a>
+                                    <?php if ( ! empty( $categories ) ) : ?>
+                                        <a href="<?php echo esc_url( get_category_link( $categories[0] ) ); ?>" class="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm hover:bg-emerald-700 transition">
+                                            <?php echo esc_html( $category_name ); ?>
+                                        </a>
+                                    <?php else : ?>
+                                        <span class="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                                            <?php echo esc_html( $category_name ); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
                                 <div class="p-5">
                                     <div class="text-[10px] text-slate-400 font-semibold mb-2 flex justify-between items-center gap-3">
                                         <span><?php echo esc_html( get_the_date() ); ?></span>

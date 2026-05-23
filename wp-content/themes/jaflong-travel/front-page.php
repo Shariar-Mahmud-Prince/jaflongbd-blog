@@ -93,16 +93,22 @@ $hero_bg = get_theme_mod( 'jaflong_travel_hero_bg', 'https://images.unsplash.com
             if ( $dest_query->have_posts() ) :
                 while ( $dest_query->have_posts() ) : $dest_query->the_post(); 
                     $post_tags = get_the_tags();
-                    $first_tag = ! empty( $post_tags ) ? '#' . $post_tags[0]->name : '#দর্শনীয়স্থান';
+                    $first_tag = ! empty( $post_tags ) ? $post_tags[0] : null;
                     ?>
                     <article class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 card-hover-effect flex flex-col justify-between">
-                        <div class="relative h-48 bg-slate-100">
-                            <?php if ( has_post_thumbnail() ) : ?>
-                                <?php the_post_thumbnail( 'medium_large', array( 'class' => 'w-full h-full object-cover' ) ); ?>
+                        <div class="relative h-48 bg-slate-100 overflow-hidden">
+                            <a href="<?php the_permalink(); ?>" class="block h-full">
+                                <?php if ( has_post_thumbnail() ) : ?>
+                                    <?php the_post_thumbnail( 'medium_large', array( 'class' => 'w-full h-full object-cover' ) ); ?>
+                                <?php else : ?>
+                                    <img src="https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=600&q=80" alt="Destination" class="w-full h-full object-cover">
+                                <?php endif; ?>
+                            </a>
+                            <?php if ( $first_tag ) : ?>
+                                <a href="<?php echo esc_url( get_tag_link( $first_tag ) ); ?>" class="absolute top-3 right-3 bg-teal-100 text-teal-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase hover:bg-teal-200 transition">#<?php echo esc_html( $first_tag->name ); ?></a>
                             <?php else : ?>
-                                <img src="https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=600&q=80" alt="Destination" class="w-full h-full object-cover">
+                                <span class="absolute top-3 right-3 bg-teal-100 text-teal-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">#দর্শনীয়স্থান</span>
                             <?php endif; ?>
-                            <span class="absolute top-3 right-3 bg-teal-100 text-teal-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase"><?php echo esc_html( $first_tag ); ?></span>
                         </div>
                         <div class="p-5">
                             <h4 class="font-extrabold text-slate-900 text-base hover:text-emerald-700 transition mb-2">
@@ -127,7 +133,7 @@ $hero_bg = get_theme_mod( 'jaflong_travel_hero_bg', 'https://images.unsplash.com
             <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10">
                 <div>
                     <span class="text-emerald-700 font-extrabold text-xs uppercase tracking-widest">নতুন আপডেট</span>
-                    <h3 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">ব্লগের নতুন ভ্রমণ নির্দেশিকা</h3>
+                    <h3 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">ভ্রমণপ্রেমীদের জন্য বিশেষ গাইড</h3>
                     <p class="text-slate-500 mt-2 text-xs md:text-sm max-w-xl">সিলেট এবং জাফলং ভ্রমণের লাইভ আবহাওয়া, বর্তমান পরিস্থিতি এবং সাশ্রয়ী গাইডলাইন জানতে চোখ রাখুন ব্লগে।</p>
                 </div>
                 <div class="mt-4 md:mt-0">
@@ -148,19 +154,27 @@ $hero_bg = get_theme_mod( 'jaflong_travel_hero_bg', 'https://images.unsplash.com
                 if ( $latest_posts->have_posts() ) :
                     while ( $latest_posts->have_posts() ) : $latest_posts->the_post(); 
                         $categories = get_the_category();
-                        $category_name = ! empty( $categories ) ? esc_html( $categories[0]->name ) : 'ভ্রমণ গাইড';
+                        $primary_category = ! empty( $categories ) ? $categories[0] : null;
                         ?>
                         <article class="bg-slate-50/60 rounded-3xl overflow-hidden border border-slate-100 flex flex-col justify-between card-hover-effect">
                             <div>
-                                <div class="relative h-52 bg-slate-200">
-                                    <?php if ( has_post_thumbnail() ) : ?>
-                                        <?php the_post_thumbnail( 'medium_large', array( 'class' => 'w-full h-full object-cover' ) ); ?>
+                                <div class="relative h-52 bg-slate-200 overflow-hidden">
+                                    <a href="<?php the_permalink(); ?>" class="block h-full">
+                                        <?php if ( has_post_thumbnail() ) : ?>
+                                            <?php the_post_thumbnail( 'medium_large', array( 'class' => 'w-full h-full object-cover' ) ); ?>
+                                        <?php else : ?>
+                                            <img src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=600&q=80" alt="Placeholder" class="w-full h-full object-cover opacity-80">
+                                        <?php endif; ?>
+                                    </a>
+                                    <?php if ( $primary_category ) : ?>
+                                        <a href="<?php echo esc_url( get_category_link( $primary_category ) ); ?>" class="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm hover:bg-emerald-700 transition">
+                                            <?php echo esc_html( $primary_category->name ); ?>
+                                        </a>
                                     <?php else : ?>
-                                        <img src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=600&q=80" alt="Placeholder" class="w-full h-full object-cover opacity-80">
+                                        <span class="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                                            ভ্রমণ গাইড
+                                        </span>
                                     <?php endif; ?>
-                                    <span class="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                                        <?php echo $category_name; ?>
-                                    </span>
                                 </div>
                                 <div class="p-5">
                                     <div class="text-[10px] text-slate-400 font-semibold mb-2 flex justify-between items-center">

@@ -351,11 +351,92 @@ function jaflong_travel_performance_cleanup() {
 add_action( 'init', 'jaflong_travel_performance_cleanup' );
 
 /**
+ * Find posts by normal text search plus matching category/tag names and slugs.
+ */
+function jaflong_travel_get_expanded_search_post_ids( $search_query ) {
+    $search_query = trim( (string) $search_query );
+
+    if ( '' === $search_query ) {
+        return array();
+    }
+
+    $post_ids = array();
+
+    $text_query = new WP_Query( array(
+        'post_type'              => 'post',
+        'post_status'            => 'publish',
+        'posts_per_page'         => -1,
+        'fields'                 => 'ids',
+        's'                      => $search_query,
+        'no_found_rows'          => true,
+        'update_post_meta_cache' => false,
+        'update_post_term_cache' => false,
+    ) );
+
+    if ( ! empty( $text_query->posts ) ) {
+        $post_ids = array_merge( $post_ids, $text_query->posts );
+    }
+
+    $search_value = function_exists( 'mb_strtolower' ) ? mb_strtolower( $search_query ) : strtolower( $search_query );
+    $matched_terms = array();
+    $terms = get_terms( array(
+        'taxonomy'   => array( 'category', 'post_tag' ),
+        'hide_empty' => false,
+    ) );
+
+    if ( ! is_wp_error( $terms ) ) {
+        foreach ( $terms as $term ) {
+            $term_values = array(
+                $term->name,
+                $term->slug,
+                $term->description,
+            );
+
+            foreach ( $term_values as $term_value ) {
+                $term_value = function_exists( 'mb_strtolower' ) ? mb_strtolower( (string) $term_value ) : strtolower( (string) $term_value );
+
+                if ( false !== strpos( $term_value, $search_value ) ) {
+                    $matched_terms[] = $term;
+                    break;
+                }
+            }
+        }
+    }
+
+    if ( ! empty( $matched_terms ) ) {
+        $term_ids_by_taxonomy = array(
+            'category' => array(),
+            'post_tag' => array(),
+        );
+
+        foreach ( $matched_terms as $term ) {
+            if ( isset( $term_ids_by_taxonomy[ $term->taxonomy ] ) ) {
+                $term_ids_by_taxonomy[ $term->taxonomy ][] = (int) $term->term_id;
+            }
+        }
+
+        foreach ( $term_ids_by_taxonomy as $taxonomy => $term_ids ) {
+            if ( empty( $term_ids ) ) {
+                continue;
+            }
+
+            $taxonomy_post_ids = get_objects_in_term( array_unique( $term_ids ), $taxonomy );
+            if ( ! is_wp_error( $taxonomy_post_ids ) ) {
+                $post_ids = array_merge( $post_ids, $taxonomy_post_ids );
+            }
+        }
+    }
+
+    return array_values( array_unique( array_filter( array_map( 'absint', $post_ids ) ) ) );
+}
+
+/**
  * High-Performance Secure AJAX Handler for Infinite Scroll Blog Loading (In Bengali)
  */
 function jaflong_travel_ajax_load_posts() {
     $paged = isset( $_POST['page'] ) ? intval( $_POST['page'] ) : 1;
     $category_slug = isset( $_POST['category'] ) ? sanitize_text_field( $_POST['category'] ) : 'all';
+    $tag_slug = isset( $_POST['tag'] ) ? sanitize_text_field( $_POST['tag'] ) : '';
     $search_query = isset( $_POST['search'] ) ? sanitize_text_field( $_POST['search'] ) : '';
 
     $args = array(
@@ -369,8 +450,13 @@ function jaflong_travel_ajax_load_posts() {
         $args['category_name'] = $category_slug;
     }
 
+    if ( ! empty( $tag_slug ) ) {
+        $args['tag'] = $tag_slug;
+    }
+
     if ( ! empty( $search_query ) ) {
-        $args['s'] = $search_query;
+        $search_post_ids = jaflong_travel_get_expanded_search_post_ids( $search_query );
+        $args['post__in'] = ! empty( $search_post_ids ) ? $search_post_ids : array( 0 );
     }
 
     $ajax_query = new WP_Query( $args );
@@ -386,13 +472,13 @@ function jaflong_travel_ajax_load_posts() {
             ?>
             <article class="blog-post-card <?php echo esc_attr( $class_string ); ?> bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 flex flex-col justify-between card-hover-effect">
                 <div>
-                    <div class="relative h-56 bg-slate-100">
+                    <a href="<?php the_permalink(); ?>" class="block relative h-56 bg-slate-100 overflow-hidden">
                         <?php if ( has_post_thumbnail() ) : ?>
                             <?php the_post_thumbnail( 'medium_large', array( 'class' => 'w-full h-full object-cover' ) ); ?>
                         <?php else : ?>
                             <img src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=600&q=80" alt="Placeholder" class="w-full h-full object-cover">
                         <?php endif; ?>
-                    </div>
+                    </a>
                     <div class="p-6">
                         <div class="text-[10px] text-slate-400 font-semibold mb-2 flex justify-between items-center">
                             <span><?php echo esc_html( get_the_date() ); ?></span>
@@ -432,11 +518,13 @@ function jaflong_travel_ajax_search() {
         wp_send_json_success( array( 'posts' => array() ) );
     }
 
+    $search_post_ids = jaflong_travel_get_expanded_search_post_ids( $search_query );
+
     $args = array(
         'post_type'      => 'post',
         'posts_per_page' => 5,
         'post_status'    => 'publish',
-        's'              => $search_query
+        'post__in'       => ! empty( $search_post_ids ) ? $search_post_ids : array( 0 ),
     );
 
     $query = new WP_Query( $args );
