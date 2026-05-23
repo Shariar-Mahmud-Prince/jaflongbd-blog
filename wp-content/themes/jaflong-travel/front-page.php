@@ -77,7 +77,7 @@ $hero_bg = get_theme_mod( 'jaflong_travel_hero_bg', 'https://images.unsplash.com
             <div class="flex justify-center mb-4">
                 <span class="bg-emerald-100 text-emerald-850 text-xs font-bold px-4 py-1.5 rounded-full border border-emerald-200/50 shadow-sm inline-block">দর্শনীয় স্থান</span>
             </div>
-            <h3 class="text-2xl md:text-4xl font-extrabold text-slate-900 tracking-tight">সবচেয়ে জনপ্রিয় দর্শনীয় স্থান test</h3>
+            <h3 class="text-2xl md:text-4xl font-extrabold text-slate-900 tracking-tight">সবচেয়ে জনপ্রিয় দর্শনীয় স্থান</h3>
             <p class="text-slate-500 mt-2 text-xs md:text-sm"><?php esc_html_e( 'সিলেটের সবচেয়ে চমৎকার স্পটগুলোর ভ্রমণ নির্দেশিকা সরাসরি ক্যাটাগরি থেকে লোড হচ্ছে।', 'jaflong-travel' ); ?></p>
             <div class="w-12 h-1 bg-emerald-600 mx-auto mt-4 rounded-full"></div>
         </div>
