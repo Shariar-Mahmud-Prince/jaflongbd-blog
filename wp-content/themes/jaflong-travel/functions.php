@@ -351,18 +351,93 @@ function jaflong_travel_performance_cleanup() {
 add_action( 'init', 'jaflong_travel_performance_cleanup' );
 
 /**
- * Find posts by normal text search plus matching category/tag names and slugs.
+ * Find posts in priority order: title, category, tag, keyword, then partial text.
  */
 function jaflong_travel_get_expanded_search_post_ids( $search_query ) {
+    global $wpdb;
+
     $search_query = trim( (string) $search_query );
 
     if ( '' === $search_query ) {
         return array();
     }
 
-    $post_ids = array();
+    $ordered_ids = array();
+    $seen_ids = array();
 
-    $text_query = new WP_Query( array(
+    $add_ids = function( $ids ) use ( &$ordered_ids, &$seen_ids ) {
+        foreach ( (array) $ids as $id ) {
+            $id = absint( $id );
+
+            if ( $id && ! isset( $seen_ids[ $id ] ) ) {
+                $ordered_ids[] = $id;
+                $seen_ids[ $id ] = true;
+            }
+        }
+    };
+
+    $like_query = '%' . $wpdb->esc_like( $search_query ) . '%';
+    $starts_query = $wpdb->esc_like( $search_query ) . '%';
+
+    // 1. Title match: exact title, title starts with query, then title contains query.
+    $add_ids( $wpdb->get_col( $wpdb->prepare(
+        "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'post' AND post_status = 'publish' AND post_title = %s ORDER BY post_date DESC",
+        $search_query
+    ) ) );
+
+    $add_ids( $wpdb->get_col( $wpdb->prepare(
+        "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'post' AND post_status = 'publish' AND post_title LIKE %s ORDER BY post_date DESC",
+        $starts_query
+    ) ) );
+
+    $add_ids( $wpdb->get_col( $wpdb->prepare(
+        "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'post' AND post_status = 'publish' AND post_title LIKE %s ORDER BY post_date DESC",
+        $like_query
+    ) ) );
+
+    $search_value = function_exists( 'mb_strtolower' ) ? mb_strtolower( $search_query ) : strtolower( $search_query );
+
+    $get_matching_term_post_ids = function( $taxonomy ) use ( $search_value ) {
+        $matched_term_ids = array();
+        $terms = get_terms( array(
+            'taxonomy'   => $taxonomy,
+            'hide_empty' => false,
+        ) );
+
+        if ( is_wp_error( $terms ) ) {
+            return array();
+        }
+
+        foreach ( $terms as $term ) {
+            $values = array( $term->name, $term->slug, $term->description );
+
+            foreach ( $values as $value ) {
+                $value = function_exists( 'mb_strtolower' ) ? mb_strtolower( (string) $value ) : strtolower( (string) $value );
+
+                if ( $value === $search_value || false !== strpos( $value, $search_value ) ) {
+                    $matched_term_ids[] = (int) $term->term_id;
+                    break;
+                }
+            }
+        }
+
+        if ( empty( $matched_term_ids ) ) {
+            return array();
+        }
+
+        $post_ids = get_objects_in_term( array_unique( $matched_term_ids ), $taxonomy );
+
+        return is_wp_error( $post_ids ) ? array() : $post_ids;
+    };
+
+    // 2. Category match.
+    $add_ids( $get_matching_term_post_ids( 'category' ) );
+
+    // 3. Tag match.
+    $add_ids( $get_matching_term_post_ids( 'post_tag' ) );
+
+    // 4. Keyword/word match through WordPress post search.
+    $keyword_query = new WP_Query( array(
         'post_type'              => 'post',
         'post_status'            => 'publish',
         'posts_per_page'         => -1,
@@ -372,62 +447,42 @@ function jaflong_travel_get_expanded_search_post_ids( $search_query ) {
         'update_post_meta_cache' => false,
         'update_post_term_cache' => false,
     ) );
+    $add_ids( $keyword_query->posts );
 
-    if ( ! empty( $text_query->posts ) ) {
-        $post_ids = array_merge( $post_ids, $text_query->posts );
-    }
+    $words = preg_split( '/\s+/u', $search_query );
+    foreach ( $words as $word ) {
+        $word = trim( $word );
 
-    $search_value = function_exists( 'mb_strtolower' ) ? mb_strtolower( $search_query ) : strtolower( $search_query );
-    $matched_terms = array();
-    $terms = get_terms( array(
-        'taxonomy'   => array( 'category', 'post_tag' ),
-        'hide_empty' => false,
-    ) );
-
-    if ( ! is_wp_error( $terms ) ) {
-        foreach ( $terms as $term ) {
-            $term_values = array(
-                $term->name,
-                $term->slug,
-                $term->description,
-            );
-
-            foreach ( $term_values as $term_value ) {
-                $term_value = function_exists( 'mb_strtolower' ) ? mb_strtolower( (string) $term_value ) : strtolower( (string) $term_value );
-
-                if ( false !== strpos( $term_value, $search_value ) ) {
-                    $matched_terms[] = $term;
-                    break;
-                }
-            }
-        }
-    }
-
-    if ( ! empty( $matched_terms ) ) {
-        $term_ids_by_taxonomy = array(
-            'category' => array(),
-            'post_tag' => array(),
-        );
-
-        foreach ( $matched_terms as $term ) {
-            if ( isset( $term_ids_by_taxonomy[ $term->taxonomy ] ) ) {
-                $term_ids_by_taxonomy[ $term->taxonomy ][] = (int) $term->term_id;
-            }
+        if ( strlen( $word ) < 2 ) {
+            continue;
         }
 
-        foreach ( $term_ids_by_taxonomy as $taxonomy => $term_ids ) {
-            if ( empty( $term_ids ) ) {
-                continue;
-            }
-
-            $taxonomy_post_ids = get_objects_in_term( array_unique( $term_ids ), $taxonomy );
-            if ( ! is_wp_error( $taxonomy_post_ids ) ) {
-                $post_ids = array_merge( $post_ids, $taxonomy_post_ids );
-            }
-        }
+        $word_query = new WP_Query( array(
+            'post_type'              => 'post',
+            'post_status'            => 'publish',
+            'posts_per_page'         => -1,
+            'fields'                 => 'ids',
+            's'                      => $word,
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+        ) );
+        $add_ids( $word_query->posts );
     }
 
-    return array_values( array_unique( array_filter( array_map( 'absint', $post_ids ) ) ) );
+    // 5. Partial text or letter match in title, excerpt, or content.
+    $add_ids( $wpdb->get_col( $wpdb->prepare(
+        "SELECT ID FROM {$wpdb->posts}
+        WHERE post_type = 'post'
+        AND post_status = 'publish'
+        AND (post_title LIKE %s OR post_excerpt LIKE %s OR post_content LIKE %s)
+        ORDER BY post_date DESC",
+        $like_query,
+        $like_query,
+        $like_query
+    ) ) );
+
+    return $ordered_ids;
 }
 
 /**
@@ -457,6 +512,7 @@ function jaflong_travel_ajax_load_posts() {
     if ( ! empty( $search_query ) ) {
         $search_post_ids = jaflong_travel_get_expanded_search_post_ids( $search_query );
         $args['post__in'] = ! empty( $search_post_ids ) ? $search_post_ids : array( 0 );
+        $args['orderby'] = 'post__in';
     }
 
     $ajax_query = new WP_Query( $args );
@@ -525,6 +581,7 @@ function jaflong_travel_ajax_search() {
         'posts_per_page' => 5,
         'post_status'    => 'publish',
         'post__in'       => ! empty( $search_post_ids ) ? $search_post_ids : array( 0 ),
+        'orderby'        => 'post__in',
     );
 
     $query = new WP_Query( $args );
